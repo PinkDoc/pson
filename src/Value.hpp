@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "Object.hpp"
+#include "Array.hpp"
+
 namespace pson {
 
     class Value;
@@ -115,17 +118,17 @@ namespace pson {
     }
 
     void Value::reset() {
-        if (type_ == String)
+        if (type_ == JSON_STRING)
         {
             auto p = CAST(String);
             p->String::~String();
         }
-        if (type_ == Array)
+        if (type_ == JSON_ARRAY)
         {
             auto p = CAST(Array);
             p->Array::~Array();
         }
-        if (type_ == Object)
+        if (type_ == JSON_OBJECT)
         {
             auto p = CAST(Object);
             p->Object::~Object();
