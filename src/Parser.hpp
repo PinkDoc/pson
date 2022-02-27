@@ -15,8 +15,6 @@
 
 #include <math.h>
 
-#define PSON_ASSERT(res) \
-    pson::assertion(__FILE__, __LINE__, res)
 
 
 //
@@ -28,14 +26,7 @@ namespace pson {
     class Object;
     class Value;
 
-    static void assertion(char* filename, int line, bool res)
-    {
-        if (!res)
-        {
-            fprintf(stderr, "[PSON ERROR] : file %s at line %d \n", filename, line);
-            assert(false);
-        }
-    }
+
 
     class Parser {
     private:

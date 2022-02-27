@@ -11,7 +11,20 @@
 #include "Object.hpp"
 #include "Array.hpp"
 
+#define PSON_ASSERT(res) \
+    pson::assertion(__FILE__, __LINE__, res)
+
+
 namespace pson {
+
+    static void assertion(char* filename, int line, bool res)
+    {
+        if (!res)
+        {
+            fprintf(stderr, "[PSON ERROR] : file %s at line %d \n", filename, line);
+            assert(false);
+        }
+    }
 
     class Value;
     class Array;
@@ -76,12 +89,19 @@ namespace pson {
         bool IsArray() { JudgeType(JSON_ARRAY); }
         bool IsObject() { JudgeType(JSON_OBJECT); }
 
-        int& AsNull() { reset(); type_ = JSON_NULL; return *CAST(int); }
-        bool& AsBool() { reset(); type_ == JSON_BOOL; return *CAST(bool); }
-        Number& AsNumber() { reset(); type_ == JSON_NUMBER; return *CAST(Number); }
-        String& AsString() { reset(); type_ == JSON_STRING; return *CAST(String); }
-        Array& AsArray() { reset(); type_ == JSON_ARRAY; return *CAST(Array); }
-        Object& AsObject() { reset(); type_ == JSON_OBJECT; return *CAST(Object); }
+        int& AsNull() { PSON_ASSERT(type_ == JSON_NULL); *CAST(int); }
+        bool& AsBool() { PSON_ASSERT(type_ == JSON_BOOL);  return *CAST(bool); }
+        Number& AsNumber() { PSON_ASSERT(type_ == JSON_NUMBER); return *CAST(Number); }
+        String& AsString() { PSON_ASSERT(type_ = JSON_STRING); return *CAST(String); }
+        Array& AsArray() { PSON_ASSERT(type_ == JSON_ARRAY); return *CAST(Array); }
+        Object& AsObject() { PSON_ASSERT(type_ == JSON_OBJECT); return *CAST(Object); }
+
+        void ToNull() { reset(); type_ = JSON_NULL; *CAST(int) = 0; }
+        void ToBool(bool to) { reset(); type_ = JSON_BOOL; *CAST(bool) = to;}
+        void ToNumber(Number num) {reset(); type_ = JSON_NUMBER; *CAST(Number) = num;}
+        void ToString(const String& str) {reset(); type_ = JSON_STRING; *CAST(String) = str;}
+        void AsArray(const Array& array) { reset(); type_ = JSON_ARRAY; *CAST(Array) = array;}
+        void AsObject(const Object& obj) { reset(); type_ = JSON_OBJECT; *CAST(Object) = obj; }
     };
 
     Value::Value(const JSON_TYPE &type) {
