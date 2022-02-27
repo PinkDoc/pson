@@ -21,11 +21,10 @@ namespace pson {
 
     public:
         explicit
-        Object() {}
+        Object() noexcept {}
 
-        int parse(std::string& json_data);
-        int parse(char* json_data, size_t len);
-
+        void Insert(std::string& name, Value* val) { value_map_.emplace(std::move(name) , val); }
+        void Insert(std::string& name, Value& val) { value_map_.emplace(std::move(name), &val); }
         bool Has(const std::string& name) { return value_map_.find(name) != value_map_.end(); }
         Value& Get(const std::string& name) { return *value_map_[name]; }
         size_t Size() const { return value_map_.size(); }

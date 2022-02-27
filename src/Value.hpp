@@ -31,6 +31,7 @@ namespace pson {
         JSON_OBJECT
     };
 
+
     class Value {
     private:
         template <typename arg, typename... args>
@@ -75,11 +76,12 @@ namespace pson {
         bool IsArray() { JudgeType(JSON_ARRAY); }
         bool IsObject() { JudgeType(JSON_OBJECT); }
 
-        int& AsNull() { return *CAST(int); }
-        bool& AsBool() { return *CAST(bool); }
-        Number& AsNumber() { return *CAST(Number); }
-        Array& AsArray() { return *CAST(Array); }
-        Object& AsObject() { return *CAST(Object); }
+        int& AsNull() { reset(); type_ = JSON_NULL; return *CAST(int); }
+        bool& AsBool() { reset(); type_ == JSON_BOOL; return *CAST(bool); }
+        Number& AsNumber() { reset(); type_ == JSON_NUMBER; return *CAST(Number); }
+        String& AsString() { reset(); type_ == JSON_STRING; return *CAST(String); }
+        Array& AsArray() { reset(); type_ == JSON_ARRAY; return *CAST(Array); }
+        Object& AsObject() { reset(); type_ == JSON_OBJECT; return *CAST(Object); }
     };
 
     Value::Value(const JSON_TYPE &type) {

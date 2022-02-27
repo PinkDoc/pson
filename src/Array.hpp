@@ -14,7 +14,7 @@ namespace pson {
         std::vector<Value*> values_;
     public:
         explicit
-        Array() {}
+        Array() noexcept {}
 
         bool     Has(unsigned int i) { return values_.size() > i; }
         Value&   Get(unsigned int i) { return *values_[i]; }
