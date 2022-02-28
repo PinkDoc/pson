@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <string>
 
-#include "Object.hpp"
 #include "Value.hpp"
 
 #if __cplusplus >= 201703L
@@ -202,6 +201,7 @@ namespace pson {
         Number res = strtod(begin , nullptr);
         if (errno == ERANGE || res == HUGE_VAL || res == -HUGE_VAL) return false;
         v.ImportNumber(res);
+        state_.offset_ += end - begin + 1;
         return true;
 
 #undef ISONETONINE
@@ -230,7 +230,7 @@ namespace pson {
             offset++;
             char ch = d[offset];
             switch (ch) {
-                case '\"': return true;
+                case '\"': {offset++; return true; }
                 case '\0': return false;
                 default:
                     s.push_back(ch);
@@ -249,12 +249,61 @@ namespace pson {
 
     bool Parser::parse_array(Value &v)
     {
+        auto& offset = state_.offset_;
+        char* d = state_.data_;
+        PSON_ASSERT(d[offset] == '[');
+        skip_write_blank();
+        ++offset;
+        if (offset >= state_.size_) return false;
 
+        Array array;
+        v.ImportArray(array);
+        
+        if (d[offset] == ']')
+        {
+            return true;
+        }
+
+        while(true)
+        {
+            Value* val = new Value();
+            if (!parse_value(*val)) return false;
+            skip_write_blank();
+            v.AsArray().Push(val);
+            if (d[offset] == ',')
+                offset++;
+            else if (d[offset] == ']')
+            {
+                offset++;
+                return true;
+            }
+            else
+                return false;
+            skip_write_blank();
+        }
     }
 
     bool Parser::parse_object(Value &v)
     {
+        auto& offset = state_.offset_;
+        char* d = state_.data_;
+        PSON_ASSERT(d[offset] == '{');
+        skip_write_blank();
+        ++offset;
+        if (offset >= state_.size_) return false;
 
+        Object obj;
+        v.ImportObject(obj);
+
+        if (d[offset] == '}')
+        {
+            return true;
+        }
+
+        while(true)
+        {
+
+        }
     }
 
     bool Parser::parse_value(Value& v)
