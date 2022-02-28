@@ -5,6 +5,9 @@
 #ifndef PNET_PSON_VALUE_HPP
 #define PNET_PSON_VALUE_HPP
 
+#include <string.h>
+#include <assert.h>
+
 #include <string>
 #include <vector>
 
@@ -79,32 +82,44 @@ namespace pson {
         explicit
         Value(const JSON_TYPE& type);
 
+        explicit
+        Value(Value&& val);
+
+        explicit
+        Value(const Value& val);
+
         ~Value() { reset(); }
 
         void reset();
 
-        bool IsNull() { JudgeType(JSON_NULL); }
-        bool IsBool() { JudgeType(JSON_BOOL); }
-        bool IsNumber() { JudgeType(JSON_NUMBER); }
-        bool IsArray() { JudgeType(JSON_ARRAY); }
-        bool IsObject() { JudgeType(JSON_OBJECT); }
+        bool IsNull() { return JudgeType(JSON_NULL); }
+        bool IsBool() { return JudgeType(JSON_BOOL); }
+        bool IsNumber() { return JudgeType(JSON_NUMBER); }
+        bool IsArray() { return JudgeType(JSON_ARRAY); }
+        bool IsObject() { return JudgeType(JSON_OBJECT); }
 
-        int& AsNull() { PSON_ASSERT(type_ == JSON_NULL); *CAST(int); }
+        int& AsNull() { PSON_ASSERT(type_ == JSON_NULL); return *CAST(int); }
         bool& AsBool() { PSON_ASSERT(type_ == JSON_BOOL);  return *CAST(bool); }
         Number& AsNumber() { PSON_ASSERT(type_ == JSON_NUMBER); return *CAST(Number); }
         String& AsString() { PSON_ASSERT(type_ = JSON_STRING); return *CAST(String); }
         Array& AsArray() { PSON_ASSERT(type_ == JSON_ARRAY); return *CAST(Array); }
         Object& AsObject() { PSON_ASSERT(type_ == JSON_OBJECT); return *CAST(Object); }
 
-        void ToNull() { reset(); type_ = JSON_NULL; *CAST(int) = 0; }
-        void ToBool(bool to) { reset(); type_ = JSON_BOOL; *CAST(bool) = to;}
-        void ToNumber(Number num) {reset(); type_ = JSON_NUMBER; *CAST(Number) = num;}
-        void ToString(const String& str) {reset(); type_ = JSON_STRING; *CAST(String) = str;}
-        void AsArray(const Array& array) { reset(); type_ = JSON_ARRAY; *CAST(Array) = array;}
-        void AsObject(const Object& obj) { reset(); type_ = JSON_OBJECT; *CAST(Object) = obj; }
+        void ImportNull() { reset(); type_ = JSON_NULL; *CAST(int) = 0; }
+
+        void ImportBool(bool to) { reset(); type_ = JSON_BOOL; *CAST(bool) = to; }
+
+        void ImportNumber(Number num) { reset(); type_ = JSON_NUMBER; *CAST(Number) = num; }
+
+        void ImportString(String str);
+
+        void ImportArray(Array array);
+
+        void ImportObject(Object obj);
     };
 
     Value::Value(const JSON_TYPE &type) {
+        type_ = type;
         switch (type) {
             case JSON_NULL:
             {
@@ -139,6 +154,87 @@ namespace pson {
         }
     }
 
+    Value::Value(Value&& val)
+    {
+#define AS(type) *reinterpret_cast<type*>(val.buffer_)
+        switch (val.type_) {
+            case JSON_NULL:
+            {
+                new (buffer_)int(0);
+                break;
+            }
+            case JSON_BOOL:
+            {
+                new (buffer_)bool(AS(bool));
+                break;
+            }
+            case JSON_NUMBER:
+            {
+                new (buffer_)Number(AS(Numebr));
+                break;
+            }
+            case JSON_STRING:
+            {
+                new (buffer_)String(std::move(AS(String)));
+                break;
+            }
+            case JSON_ARRAY:
+            {
+                new (buffer_)Array(std::move(AS(Array)));
+                break;
+            }
+            case JSON_OBJECT:
+            {
+                new (buffer_)Object(std::move(AS(Object)));
+                break;
+            }
+        }
+        type_ = val.type_;
+#undef AS;
+    }
+
+
+    Value(const Value& val)
+    {
+#define AS(type) *reinterpret_cast<type*>(val.buffer_)
+
+        switch(val.type_)
+        {
+            case JSON_NULL:
+            {
+                new (buffer_)int(0);
+                break;
+            }
+            case JSON_BOOL:
+            {
+                new (buffer_)bool(AS(bool));
+                break;
+            }
+            case JSON_NUMBER:
+            {
+                new (buffer_)Number(AS(Number));
+                break;
+            }
+            case JSON_STRING:
+            {
+                new (buffer_)String(AS(String));
+                break;
+            }
+            case JSON_ARRAY:
+            {
+                new (buffer_)Array(AS(Array));
+                break;
+            }
+            case JSON_OBJECT:
+            {
+                new (buffer_)Object(AS(Object));
+                break;
+            }
+        }
+        type_ = val.type_;
+#undef AS
+    }
+
     void Value::reset() {
         if (type_ == JSON_STRING)
         {
@@ -156,6 +252,27 @@ namespace pson {
             p->Object::~Object();
         }
         type_ = JSON_UNKNOW;
+    }
+
+    void Value::ImportString(String str)
+    {
+        reset();
+        new (buffer_)String(::std::move(str));
+        type_ = JSON_STRING;
+    }
+
+    void Value::ImportArray(Array array)
+    {
+        reset();
+        new (buffer_)Array(::std::move(array));
+        type_ = JSON_ARRAY;
+    }
+
+    void Value::ImportObject(Object obj)
+    {
+        reset();
+        new (buffer_)Object(::std::move(obj));
+        type_ = JSON_OBJECT;
     }
 
 } // namespace pson

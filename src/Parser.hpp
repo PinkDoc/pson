@@ -36,8 +36,6 @@ namespace pson {
             size_t size_;
             size_t offset_;
 
-            unsigned u_;            // Save utf-8
-
             state(char* data, size_t size):
                 data_(data),
                 size_(size),
@@ -83,7 +81,7 @@ namespace pson {
         bool parse_unicode(Value& v);
 
         // Only parse string
-        bool parse_string_row(Value& v);
+        bool parse_string_row(String& s);
 
         // parse value string
         bool parse_string(Value& v);
@@ -133,7 +131,7 @@ namespace pson {
             d[offset + 3] != 'e') return false;
 
         offset += 3;
-        v.AsBool() = true;
+        v.ImportBool(true);
 
         return true;
     }
@@ -151,7 +149,7 @@ namespace pson {
             d[offset + 4] != 'e') return false;
 
         offset += 4;
-        v.AsBool() = false;
+        v.ImportBool(false);
 
         return true;
     }
@@ -168,7 +166,7 @@ namespace pson {
             d[offset + 3] != 'l') return false;
 
         offset += 3;
-        v.AsNull() = 0;
+        v.ImportNull();
 
         return true;
     }
@@ -203,7 +201,7 @@ namespace pson {
         errno = 0;
         Number res = strtod(begin , nullptr);
         if (errno == ERANGE || res == HUGE_VAL || res == -HUGE_VAL) return false;
-        v.AsNumber() = res;
+        v.ImportNumber(res);
         return true;
 
 #undef ISONETONINE
@@ -221,14 +219,32 @@ namespace pson {
 
     }
 
-    bool Parser::parse_string_row(Value &v)
+    bool Parser::parse_string_row(String& s)
     {
-
+        auto& offset = state_.offset_;
+        auto d = state_.data_;
+        PSON_ASSERT(d[offset] == '\"');
+        while (true)
+        {
+            if (offset >= state_.size_) return false;
+            offset++;
+            char ch = d[offset];
+            switch (ch) {
+                case '\"': return true;
+                case '\0': return false;
+                default:
+                    s.push_back(ch);
+            }
+        }
+        
     }
 
     bool Parser::parse_string(Value &v)
     {
-
+        String s;
+        if (!parse_string_row(s)) return false;
+        v.ImportString(std::move(s));       // Zero Overhead
+        return true;
     }
 
     bool Parser::parse_array(Value &v)
