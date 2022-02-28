@@ -129,7 +129,7 @@ namespace pson {
             d[offset + 2] != 'u' ||
             d[offset + 3] != 'e') return false;
 
-        offset += 3;
+        offset += 4;
         v.ImportBool(true);
 
         return true;
@@ -147,7 +147,7 @@ namespace pson {
             d[offset + 3] != 's' ||
             d[offset + 4] != 'e') return false;
 
-        offset += 4;
+        offset += 5;
         v.ImportBool(false);
 
         return true;
@@ -164,7 +164,7 @@ namespace pson {
             d[offset + 2] != 'l' ||
             d[offset + 3] != 'l') return false;
 
-        offset += 3;
+        offset += 4;
         v.ImportNull();
 
         return true;
@@ -267,8 +267,7 @@ namespace pson {
         while(true)
         {
             Value* val = new Value();
-            if (!parse_value(*val)) return false;
-            skip_write_blank();
+            if (!Parse(*val)) return false;
             v.AsArray().Push(val);
             if (d[offset] == ',')
                 offset++;
@@ -279,7 +278,6 @@ namespace pson {
             }
             else
                 return false;
-            skip_write_blank();
         }
     }
 
@@ -299,10 +297,33 @@ namespace pson {
         {
             return true;
         }
+        String name;
 
         while(true)
         {
+            if (!parse_string_row(name)) return false;
+            skip_write_blank();
+            Value* val = new Value();
+            if (d[offset] != ':') return false;
+            ++offset;
 
+            if (!Parse(*val)) return false;
+            v.AsObject().Insert(std::move(name), val);
+
+            if (d[offset] == ',')
+            {
+                ++offset;
+                skip_write_blank();
+            }
+            else if (d[offset] == '}')
+            {
+                ++offset;
+                return true;
+            }
+            else if (offset >= state_.size_)
+            {
+                return false;
+            }
         }
     }
 

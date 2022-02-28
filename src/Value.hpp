@@ -290,7 +290,7 @@ namespace pson {
 
     Value& Array::Get(size_t i)
     {
-        PSON_ASSERT(i <= values_.size());
+        PSON_ASSERT(i < values_.size());
         return *values_[i];
     }
 
