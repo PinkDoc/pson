@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "Value.hpp"
 #include "Parser.hpp"
 #include <stdio.h>
 #include <assert.h>
@@ -37,7 +36,7 @@ TEST(ParseTest, ParseNumber_Right)
     std::string number2 = "1.23125435353245";
     std::string number3 = "0.123123";
     std::string number4 = "-0.13453456e10";
-    pson::Value v1, v2, v3, v4;
+    pson::Value v1 , v2, v3, v4;
 
     pson::Parser parser(number1);
     auto r1 = parser.Parse(v1);
@@ -61,9 +60,88 @@ TEST(ParseTest, ParseNumber_Right)
 
 }
 
+TEST(ParseTest, ParseString_Right )
+{
+    std::string s1 = " \" Fuck You baby \"";
+    pson::Value v;
 
+    pson::Parser parser(s1);
+    auto ret = parser.Parse(v);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(v.AsString(), " Fuck You baby ");
 
+}
 
+TEST(ParseTest, ParseTest_ParseArray_Right )
+{
+    std::string array = " [\"hello \", null, false, \"fuck\"] ";
+    pson::Value a;
+
+    pson::Parser parser(array);
+    auto ret = parser.Parse(a);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(a.AsArray().Get(0).AsString(), "hello ");
+    EXPECT_EQ(a.AsArray().Get(1).AsNull(), 0);
+    EXPECT_EQ(a.AsArray().Get(2).AsBool(), false);
+    EXPECT_EQ(a.AsArray().Get(3).AsString(), "fuck");
+
+   /*
+    *  std::string a2 = " [] ";
+    parser.SetData(const_cast<char*>(a2.data()), a2.size());
+    ret = parser.Parse(a);
+
+    EXPECT_EQ(ret, true);*/
+}
+
+TEST(ParseTest, ParseTest_ParseObject_Right_Test)
+{
+
+    std::string object = "{\n"
+                         "    \n"
+                         "    \"version\": \"0.2.0\",\n"
+                         "    \"configurations\": [\n"
+                         "        {\n"
+                         "            \"name\": \"g++ zxczczxc\",\n"
+                         "            \"type\": \"cppdbg\",\n"
+                         "            \"request\": \"launch\",\n"
+                         "            \"program\": \"${fileDirname}/${fileBasenameNoExtension}\",\n"
+                         "            \"args\": [],\n"
+                         "            \"stopAtEntry\": false,\n"
+                         "            \"cwd\": \"${fileDirname}\",\n"
+                         "            \"environment\": [],\n"
+                         "            \"externalConsole\": false,\n"
+                         "            \"MIMode\": \"gdb\",\n"
+                         "            \"setupCommands\": [\n"
+                         "                {\n"
+                         "                    \"description\": \"zxczxc\",\n"
+                         "                    \"text\": \"-enable-pretty-printing\",\n"
+                         "                    \"ignoreFailures\": true\n"
+                         "                },\n"
+                         "                {\n"
+                         "                    \"description\": \"zxczxczxcIntel\",\n"
+                         "                    \"text\": \"-gdb-set disassembly-flavor intel\",\n"
+                         "                    \"ignoreFailures\": true\n"
+                         "                }\n"
+                         "            ],\n"
+                         "            \"preLaunchTask\": \"C/C++: g+zxczxc\",\n"
+                         "            \"miDebuggerPath\": \"/usr/bin/gdb\"\n"
+                         "        }\n"
+                         "    ]\n"
+                         "}";
+
+    pson::Parser parser(object);
+    pson::Value o;
+    auto ret = parser.Parse(o);
+
+    auto& asObj = o.AsObject();
+
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(asObj.Get("version").AsString(), "0.2.0");
+    EXPECT_EQ(asObj.Get("configurations").AsArray().Get(0).AsObject().Get("stopAtEntry").AsBool(), false);
+    EXPECT_EQ(asObj.Get("configurations").AsArray().Get(0).AsObject().Get("setupCommands").IsArray(), true);
+    auto& array = asObj.Get("configurations").AsArray().Get(0).AsObject().Get("setupCommands").AsArray();
+    EXPECT_EQ(array.Get(1).AsObject().Get("text").AsString(), "-gdb-set disassembly-flavor intel");
+}
 
 int main()
 {
