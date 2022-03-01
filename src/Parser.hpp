@@ -245,7 +245,7 @@ namespace pson {
     bool Parser::parse_string(Value &v)
     {
         String s;
-        if (!parse_string_row(s)) PSON_ASSERT(false);
+        if (!parse_string_row(s)) return false;
 
         v.ImportString(std::move(s));       // Zero Overhead
         return true;

@@ -5,7 +5,6 @@
 #ifndef PNET_PSON_VALUE_HPP
 #define PNET_PSON_VALUE_HPP
 
-
 #include <string.h>
 #include <assert.h>
 
@@ -15,7 +14,6 @@
 
 #define PSON_ASSERT(res) \
     pson::assertion(__FILE__, __LINE__, res)
-
 
 namespace pson {
 
@@ -28,12 +26,18 @@ namespace pson {
         }
     }
 
+    class JsonBadConversion : std::exception
+    {};
+
+
     class Value;
     class Object;
     class Array;
 
     typedef std::string String;
     typedef double Number;
+    typedef int    Null;
+    typedef bool   Bool;
 
     enum JSON_TYPE
     {
@@ -58,9 +62,16 @@ namespace pson {
 
         inline void   Insert(std::string name, Value* value);
         inline bool   Has(const std::string& name);
-        inline Value& Get(const std::string& name);
+        inline Value& GetValue(const std::string& name);
 
         inline void reset();
+
+        inline Null& GetAsNull(const String& name);
+        inline Bool& GetAsBool(const String& name);
+        inline Number& GetAsNumber(const String& name);
+        inline String& GetAsString(const String& name);
+        inline Array& GetAsArray(const String& name);
+        inline Object& GetAsObject(const String& name);
     };
 
     class Array {
@@ -72,10 +83,17 @@ namespace pson {
         ~Array();
 
         inline bool     Has(size_t i);
-        inline Value&   Get(size_t i);
+        inline Value&   GetValue(size_t i);
         inline void     Push(Value* val);
         inline size_t   Size() const;
         inline void     reset();
+
+        inline Null& GetAsNull(size_t i);
+        inline Bool& GetAsBool(size_t i);
+        inline Number& GetAsNumber(size_t i);
+        inline String& GetAsString(size_t i);
+        inline Array& GetAsArray(size_t i);
+        inline Object& GetAsObject(size_t i);
     };
 
 
@@ -200,37 +218,37 @@ namespace pson {
 
     int& Value::AsNull()
     {
-        PSON_ASSERT(IsNull());
+        if (!IsNull()) throw JsonBadConversion();
         return *CAST(int);
     }
 
     bool& Value::AsBool()
     {
-        PSON_ASSERT(IsBool());
+        if (!IsBool()) throw JsonBadConversion();
         return *CAST(bool);
     }
 
     Number& Value::AsNumber()
     {
-        PSON_ASSERT(IsNumber());
+        if (!IsNumber()) throw JsonBadConversion();
         return *CAST(Number);
     }
 
     String& Value::AsString()
     {
-        PSON_ASSERT(IsString());
+        if (!IsString()) throw JsonBadConversion();
         return *CAST(String);
     }
 
     Array& Value::AsArray()
     {
-        PSON_ASSERT(IsArray());
+        if (!IsArray()) throw JsonBadConversion();
         return *CAST(Array);
     }
 
     Object& Value::AsObject()
     {
-        PSON_ASSERT(IsObject());
+        if (!IsObject()) throw JsonBadConversion();
         return *CAST(Object);
     }
 
@@ -289,9 +307,7 @@ namespace pson {
         return values_.size();
     }
 
-    Value& Array::Get(size_t i)
-    {
-        PSON_ASSERT(i < values_.size());
+    Value& Array::GetValue(size_t i) {
         return *values_[i];
     }
 
@@ -312,6 +328,36 @@ namespace pson {
             delete *iter;
         }
         values_.clear();
+    }
+
+    Null& Array::GetAsNull(size_t i)
+    {
+        return GetValue(i).AsNull();
+    }
+
+    Bool& Array::GetAsBool(size_t i)
+    {
+        return GetValue(i).AsBool();
+    }
+
+    Number& Array::GetAsNumber(size_t i)
+    {
+        return GetValue(i).AsNumber();
+    }
+
+    String& Array::GetAsString(size_t i)
+    {
+        return GetValue(i).AsString();
+    }
+
+    Array& Array::GetAsArray(size_t i)
+    {
+        return GetValue(i).AsArray();
+    }
+
+    Object& Array::GetAsObject(size_t i)
+    {
+        return GetValue(i).AsObject();
     }
 
     Object::Object()
@@ -341,11 +387,41 @@ namespace pson {
         value_map_.emplace(std::move(name), value);
     }
 
-    Value& Object::Get(const std::string &name)
+    Value& Object::GetValue(const std::string &name)
     {
-        PSON_ASSERT(Has(name));
         return *value_map_[name];
     }
+
+    Null& Object::GetAsNull(const String &name)
+    {
+        return GetValue(name).AsNull();
+    }
+
+    Bool& Object::GetAsBool(const String &name)
+    {
+        return GetValue(name).AsBool();
+    }
+
+    Number& Object::GetAsNumber(const String& name)
+    {
+        return GetValue(name).AsNumber();
+    }
+
+    String& Object::GetAsString(const String &name)
+    {
+        return GetValue(name).AsString();
+    }
+
+    Array& Object::GetAsArray(const String &name)
+    {
+        return GetValue(name).AsArray();
+    }
+
+    Object& Object::GetAsObject(const String &name)
+    {
+        return GetValue(name).AsObject();
+    }
+
 
 } // namespace pson
 #endif
