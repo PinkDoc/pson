@@ -1,8 +1,9 @@
 #ifndef PNET_PSON_HPP
 #define PNET_PSON_HPP
-
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
+
+#include <iostream>
 #include <string>
 
 #include "Value.hpp"
@@ -201,7 +202,7 @@ namespace pson {
         Number res = strtod(begin , nullptr);
         if (errno == ERANGE || res == HUGE_VAL || res == -HUGE_VAL) return false;
         v.ImportNumber(res);
-        state_.offset_ += end - begin + 1;
+        state_.offset_ += end - begin;
         return true;
 
 #undef ISONETONINE
@@ -224,16 +225,18 @@ namespace pson {
         auto& offset = state_.offset_;
         auto d = state_.data_;
         PSON_ASSERT(d[offset] == '\"');
+        ++offset;
         while (true)
         {
             if (offset >= state_.size_) return false;
-            offset++;
             char ch = d[offset];
             switch (ch) {
                 case '\"': {offset++; return true; }
                 case '\0': return false;
-                default:
+                default: {
                     s.push_back(ch);
+                    ++offset;
+                }
             }
         }
         
@@ -242,7 +245,8 @@ namespace pson {
     bool Parser::parse_string(Value &v)
     {
         String s;
-        if (!parse_string_row(s)) return false;
+        if (!parse_string_row(s)) PSON_ASSERT(false);
+
         v.ImportString(std::move(s));       // Zero Overhead
         return true;
     }
@@ -252,8 +256,8 @@ namespace pson {
         auto& offset = state_.offset_;
         char* d = state_.data_;
         PSON_ASSERT(d[offset] == '[');
-        skip_write_blank();
         ++offset;
+        skip_write_blank();
         if (offset >= state_.size_) return false;
 
         Array array;
@@ -261,6 +265,7 @@ namespace pson {
         
         if (d[offset] == ']')
         {
+            offset++;
             return true;
         }
 
@@ -269,6 +274,8 @@ namespace pson {
             Value* val = new Value();
             if (!Parse(*val)) return false;
             v.AsArray().Push(val);
+            skip_write_blank();
+
             if (d[offset] == ',')
                 offset++;
             else if (d[offset] == ']')
@@ -278,6 +285,7 @@ namespace pson {
             }
             else
                 return false;
+
         }
     }
 
@@ -286,34 +294,41 @@ namespace pson {
         auto& offset = state_.offset_;
         char* d = state_.data_;
         PSON_ASSERT(d[offset] == '{');
-        skip_write_blank();
         ++offset;
-        if (offset >= state_.size_) return false;
+        skip_write_blank();
+
+        if (offset >= state_.size_) {
+            return false;
+        }
 
         Object obj;
         v.ImportObject(obj);
 
         if (d[offset] == '}')
         {
+            offset++;
             return true;
         }
-        String name;
 
         while(true)
         {
-            if (!parse_string_row(name)) return false;
-            skip_write_blank();
-            Value* val = new Value();
-            if (d[offset] != ':') return false;
+          String name;
+          if (!parse_string_row(name)) return false;
+          skip_write_blank();
+          
+          Value* val = new Value();
+          char ch = d[offset];
+          if (d[offset] != ':') return false;
+          ++offset;
+
+          auto ret = Parse(*val);
+          if (!ret) return false;
+          v.AsObject().Insert(std::move(name), val);
+
+          skip_write_blank();
+          if (d[offset] == ',') {
             ++offset;
-
-            if (!Parse(*val)) return false;
-            v.AsObject().Insert(std::move(name), val);
-
-            if (d[offset] == ',')
-            {
-                ++offset;
-                skip_write_blank();
+            skip_write_blank();
             }
             else if (d[offset] == '}')
             {
