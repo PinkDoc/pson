@@ -422,6 +422,6 @@ namespace pson {
         return GetValue(name).AsObject();
     }
 
-
+#undef CAST
 } // namespace pson
 #endif

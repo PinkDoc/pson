@@ -15,12 +15,6 @@
 
 #include <math.h>
 
-
-
-//
-//  RFC 4627
-//
-
 namespace pson {
 
     class Object;
@@ -75,10 +69,10 @@ namespace pson {
         // :)
         bool parse_number(Value& v);
 
-        // \uXXXX
-        bool parse_hex4(Value& v);
+        //  0xffff
+        bool parse_hex4(unsigned& u);
 
-        bool parse_unicode(Value& v);
+        bool parse_utf8(String & v, unsigned u);
 
         // Only parse string
         bool parse_string_row(String& s);
@@ -86,12 +80,15 @@ namespace pson {
         // parse value string
         bool parse_string(Value& v);
 
+        // [name]: [val1, val2, val3......]
         bool parse_array(Value& v);
 
         bool parse_object(Value& v);
 
         bool parse_value(Value& v);
     public:
+
+
 
         Parser(const std::string& data):
             state_(const_cast<char*>(data.data()) , data.size()) {}
@@ -188,7 +185,7 @@ namespace pson {
         if (*end == '.')
         {
             end++;
-            if (!ISDIGIT(*end)) return false;
+            if (!ISDIGIT(*end)) return false;       // 0.e1
             for(;ISDIGIT(*end); end++);
         }
         if (*end == 'e' || *end == 'E')
@@ -200,7 +197,7 @@ namespace pson {
         }
         errno = 0;
         Number res = strtod(begin , nullptr);
-        if (errno == ERANGE || res == HUGE_VAL || res == -HUGE_VAL) return false;
+        if (errno == ERANGE || res == HUGE_VAL || res == -HUGE_VAL) return false;       // Number too big !
         v.ImportNumber(res);
         state_.offset_ += end - begin;
         return true;
@@ -210,20 +207,57 @@ namespace pson {
 
     }
 
-    bool Parser::parse_hex4(Value &v)
+    bool Parser::parse_hex4(unsigned& u)
     {
-
+        int i;
+        u = 0;
+        char* d = state_.data_;
+        auto& offset = state_.offset_;
+        for(i = 0; i < 4; i++)
+        {
+            char ch = d[offset++];
+            u <<= 4;
+            if (ch >= '0' && ch <= '9') u |= ch - '0';
+            else if (ch >= 'A' && ch <= 'F') u |= ch - ('A' - 10);
+            else if (ch >= 'a' && ch <= 'f') u |= ch - ('a' - 10);
+            else return false;
+        }
+        return true;
     }
 
-    bool Parser::parse_unicode(Value &v)
+    bool Parser::parse_utf8(String &s, unsigned u)
     {
-
+        if (u <= 0x7F)
+        {
+            s.push_back(u & 0xFF);
+        }
+        else if (u <= 0x7FF)
+        {
+            s.push_back(0xC0 | (u >> 6) & 0xFF);
+            s.push_back(0x80 | (u & 0x3F));
+        }
+        else if (u <= 0xFFFF)
+        {
+            s.push_back(0xE0 | ((u >> 12) & 0xFF));
+            s.push_back(0x80 | ((u >> 6) & 0x3F));
+            s.push_back(0x80 | (u & 0x3F));
+        }
+        else
+        {
+            PSON_ASSERT(u <= 0x10FFFF);
+            s.push_back(0xF0 | ((u >> 18) & 0xFF));
+            s.push_back(0x80 | ((u >> 12) & 0x3F));
+            s.push_back(0x80 | ((u >> 6) & 0x3F));
+            s.push_back(0x80 | (u & 0x3F));
+        }
+        return true;
     }
 
     bool Parser::parse_string_row(String& s)
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
+        unsigned u{0}, u2{0};
         PSON_ASSERT(d[offset] == '\"');
         ++offset;
         while (true)
@@ -233,6 +267,29 @@ namespace pson {
             switch (ch) {
                 case '\"': {offset++; return true; }
                 case '\0': return false;
+                case '\\':
+                    switch (d[offset++]) {
+                        case '\"': s.push_back('\"'); break;
+                        case '\\': s.push_back('\\'); break;
+                        case '/': s.push_back('/'); break;
+                        case 'b': s.push_back('\b'); break;
+                        case 'f': s.push_back('\f'); break;
+                        case 'n': s.push_back('\n'); break;
+                        case 'r': s.push_back('\r'); break;
+                        case 't': s.push_back('\t'); break;
+                        case 'u':
+                            if (!parse_hex4(u)) return false;
+                            if (u >= 0xD800 & u <= 0xDBFF)
+                            {
+                                if (d[offset++] != '\\') return false;
+                                if (d[offset++] != 'u') return false;
+                                if (!parse_hex4(u2)) return false;
+                                if (u2 < 0xDC00 || u2 > 0xDFFF) return false;
+                                u = (((u - 0xD800) << 10) | (u2 - 0xDC00)) + 0x10000;
+                            }
+                            parse_utf8(s, u);
+                            break;
+                    }
                 default: {
                     s.push_back(ch);
                     ++offset;
