@@ -88,7 +88,10 @@ namespace pson {
         bool parse_value(Value& v);
     public:
 
-
+#ifdef PSON_CXX17
+    Parser(const std::string_view& data):
+            state_(const_cast<char*>(data.data()), data.size()) {}
+#endif
 
         Parser(const std::string& data):
             state_(const_cast<char*>(data.data()) , data.size()) {}
@@ -101,6 +104,10 @@ namespace pson {
         void Reset() { state_.reset(); }
         void SetData(char* data, size_t len) { Reset(); state_.set(data, len); }
         void SetData(std::string& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
+
+#ifdef PSON_CXX17
+        void SetData(std::string_view& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
+#endif
 
     };
 
