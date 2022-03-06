@@ -29,18 +29,18 @@ namespace pson {
             size_t size_;
             size_t offset_;
 
-            state(char* data, size_t size):
+            inline state(char* data, size_t size):
                 data_(data),
                 size_(size),
                 offset_(0) {}
 
-           state():
+           inline state():
                 data_(nullptr),
                 size_(0),
                 offset_(0) {}
 
-           void reset() { data_ = nullptr; size_ = 0; offset_ = 0; }
-           void set(char* data, size_t len) { reset(); data_ = data; size_ = len; }
+           inline void reset() { data_ = nullptr; size_ = 0; offset_ = 0; }
+           inline void set(char* data, size_t len) { reset(); data_ = data; size_ = len; }
         };
 
         state state_;
@@ -88,29 +88,29 @@ namespace pson {
     public:
 
 #ifdef PSON_CXX17
-    Parser(const std::string_view& data):
+    inline Parser(const std::string_view& data):
             state_(const_cast<char*>(data.data()), data.size()) {}
 #endif
 
-        Parser(const std::string& data):
+        inline Parser(const std::string& data):
             state_(const_cast<char*>(data.data()) , data.size()) {}
 
-        Parser(char* data, size_t size):
+        inline Parser(char* data, size_t size):
             state_(const_cast<char*>(data ), size) {}
 
         bool Parse(Value& v);
 
-        void Reset() { state_.reset(); }
-        void SetData(char* data, size_t len) { Reset(); state_.set(data, len); }
-        void SetData(std::string& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
+        inline void Reset() { state_.reset(); }
+        inline void SetData(char* data, size_t len) { Reset(); state_.set(data, len); }
+        inline void SetData(std::string& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
 
 #ifdef PSON_CXX17
-        void SetData(std::string_view& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
+        inline void SetData(std::string_view& data) { Reset(); state_.set(const_cast<char*>(data.data()), data.size()); }
 #endif
 
     };
 
-    void Parser::skip_write_blank()
+    inline void Parser::skip_write_blank()
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
@@ -122,7 +122,7 @@ namespace pson {
         }
     }
 
-    bool Parser::parse_true(Value &v)
+    inline bool Parser::parse_true(Value &v)
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
@@ -139,7 +139,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_false(Value &v)
+    inline bool Parser::parse_false(Value &v)
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
@@ -157,7 +157,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_null(Value &v)
+    inline bool Parser::parse_null(Value &v)
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
@@ -174,7 +174,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_number(Value &v)
+    inline bool Parser::parse_number(Value &v)
     {
 #define ISDIGIT(ch) (ch >= '0' && ch <= '9')
 #define ISONETONINE(ch) (ch >= '1' && ch <= '9')
@@ -213,7 +213,7 @@ namespace pson {
 
     }
 
-    bool Parser::parse_hex4(unsigned& u)
+    inline bool Parser::parse_hex4(unsigned& u)
     {
         int i;
         u = 0;
@@ -231,7 +231,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_utf8(String &s, unsigned u)
+    inline bool Parser::parse_utf8(String &s, unsigned u)
     {
         if (u <= 0x7F)
         {
@@ -259,7 +259,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_string_row(String& s)
+    inline bool Parser::parse_string_row(String& s)
     {
         auto& offset = state_.offset_;
         auto d = state_.data_;
@@ -305,7 +305,7 @@ namespace pson {
         
     }
 
-    bool Parser::parse_string(Value &v)
+    inline bool Parser::parse_string(Value &v)
     {
         String s;
         if (!parse_string_row(s)) return false;
@@ -314,7 +314,7 @@ namespace pson {
         return true;
     }
 
-    bool Parser::parse_array(Value &v)
+    inline bool Parser::parse_array(Value &v)
     {
         auto& offset = state_.offset_;
         char* d = state_.data_;
@@ -352,7 +352,7 @@ namespace pson {
         }
     }
 
-    bool Parser::parse_object(Value &v)
+    inline bool Parser::parse_object(Value &v)
     {
         auto& offset = state_.offset_;
         char* d = state_.data_;
@@ -405,7 +405,7 @@ namespace pson {
         }
     }
 
-    bool Parser::parse_value(Value& v)
+    inline bool Parser::parse_value(Value& v)
     {
         char ch = state_.data_[state_.offset_];
         switch (ch) {
@@ -428,7 +428,7 @@ namespace pson {
         return false;
     }
 
-    bool Parser::Parse(Value& v)
+    inline bool Parser::Parse(Value& v)
     {
         skip_write_blank();
         return parse_value(v);
