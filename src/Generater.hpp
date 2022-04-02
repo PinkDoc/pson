@@ -1,12 +1,18 @@
 #ifndef PSON_GENERATER_HPP
-#ifndef PSON_GENERATER_HPP
+#define PSON_GENERATER_HPP
 
 #include <stdio.h>
 #include "Parser.hpp"
 
 namespace imple {
 
-    inline void pson_print_value(const pson::Value& v, std::string& buffer) {
+    void pson_print_array(pson::Value& v, std::string& buffer);
+    void pson_print_number(pson::Value& v, std::string& buffer);
+    void pson_print_object(pson::Value& v, std::string& buffer);
+    void pson_print_string(pson::Value& v, std::string& buffer);
+
+    inline void pson_print_value(pson::Value& v, std::string& buffer) {
+        using namespace pson;
          switch(v.type())
          {
             case JSON_NULL:     { buffer.append("null"); break;}
@@ -18,20 +24,23 @@ namespace imple {
         }
     }
 
-    inline void pson_print_number(const pson::Value& v, std::string& buffer) {
+    inline void pson_print_number(pson::Value& v, std::string& buffer) {
         buffer.append(std::to_string(v.AsNumber()));
     }
 
-    inline void pson_print_string(const pson::Value& v, std::string& buffer) {
+    inline void pson_print_string(pson::Value& v, std::string& buffer) {
         buffer.push_back('"');
         buffer.append(v.AsString());
         buffer.push_back('"');
     }
 
-    inline void pson_print_array(const pson::Value& v, std::string& buffer) {
-        if (v.AsArray().size() == 0) 
-            buffer.append("[]"), return;
-        auto& array = v.AsArray().values_;
+    inline void pson_print_array(pson::Value& v, std::string& buffer) {
+        if (v.AsArray().Size() == 0) {
+            buffer.append("[]");
+            return;
+        }
+
+        auto& array = v.AsArray().values();
         buffer.push_back('[');
 
         for (auto i = 0; i < array.size(); ++i)
@@ -46,14 +55,17 @@ namespace imple {
         buffer.push_back(']');
     }
 
-    inline void pson_print_object(const pson::Value& v, std::string& buffer) {
-        auto& obj = v.AsObject();
-        if (!obj.size())
-            buffer.append("{}"), return;
+    inline void pson_print_object(pson::Value& v, std::string& buffer) {
+        auto& obj = v.AsObject().map();
+
+        if (!obj.size()) {
+            buffer.append("{}");
+            return;
+        }
 
         buffer.push_back('{');
         auto n = 0;
-        for (auto& const i : obj.value_map_)
+        for (auto& i : obj)
         {
             // Print name
             buffer.push_back('"');
@@ -72,9 +84,9 @@ namespace imple {
 
 namespace pson {
 
-    inline std::string PrintValue(const Value& v) {
+    inline std::string PrintValue(Value& v) {
         std::string buffer;
-        if (v.type() == JSON_UNKNOW) 
+        if (v.type() == pson::JSON_UNKNOW) 
             return buffer;
 
         imple::pson_print_value(v, buffer);

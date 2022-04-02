@@ -73,7 +73,7 @@ namespace pson {
         Array& GetAsArray(const String& name);
         Object& GetAsObject(const String& name);
 
-        friend void imple::pson_print_object(const Value& v, std::string& buffer);
+        std::map<std::string, Value*>& map() { return value_map_; }
     };
 
     class Array {
@@ -97,7 +97,7 @@ namespace pson {
         Array& GetAsArray(size_t i);
         Object& GetAsObject(size_t i);
 
-        friend void imple::pson_print_array(const Value& v, std::string& buffer);
+        std::vector<Value*>& values() { return values_; }
     };
 
 
