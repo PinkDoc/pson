@@ -63,7 +63,7 @@ namespace imple {
             // Print value
             pson_print_value(*i.second, buffer);
 
-            if (n != obj.size() - 1)
+            if (n++ != obj.size() - 1)
                 buffer.push_back(',');
         }
         buffer.push_back('}');
