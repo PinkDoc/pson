@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "Parser.hpp"
+#include "../Parser.hpp"
 #include <stdio.h>
 #include <assert.h>
 
@@ -80,10 +80,10 @@ TEST(ParseTest, ParseTest_ParseArray_Right )
     pson::Parser parser(array);
     auto ret = parser.Parse(a);
     EXPECT_EQ(ret, true);
-    EXPECT_EQ(a.AsArray().Get(0).AsString(), "hello ");
-    EXPECT_EQ(a.AsArray().Get(1).AsNull(), 0);
-    EXPECT_EQ(a.AsArray().Get(2).AsBool(), false);
-    EXPECT_EQ(a.AsArray().Get(3).AsString(), "fuck");
+    EXPECT_EQ(a.AsArray().GetValue(0).AsString(), "hello ");
+    EXPECT_EQ(a.AsArray().GetValue(1).AsNull(), 0);
+    EXPECT_EQ(a.AsArray().GetValue(2).AsBool(), false);
+    EXPECT_EQ(a.AsArray().GetValue(3).AsString(), "fuck");
 
    /*
     *  std::string a2 = " [] ";
@@ -136,11 +136,11 @@ TEST(ParseTest, ParseTest_ParseObject_Right_Test)
     auto& asObj = o.AsObject();
 
     EXPECT_EQ(ret, true);
-    EXPECT_EQ(asObj.Get("version").AsString(), "0.2.0");
-    EXPECT_EQ(asObj.Get("configurations").AsArray().Get(0).AsObject().Get("stopAtEntry").AsBool(), false);
-    EXPECT_EQ(asObj.Get("configurations").AsArray().Get(0).AsObject().Get("setupCommands").IsArray(), true);
-    auto& array = asObj.Get("configurations").AsArray().Get(0).AsObject().Get("setupCommands").AsArray();
-    EXPECT_EQ(array.Get(1).AsObject().Get("text").AsString(), "-gdb-set disassembly-flavor intel");
+    EXPECT_EQ(asObj.GetValue("version").AsString(), "0.2.0");
+    EXPECT_EQ(asObj.GetValue("configurations").AsArray().GetValue(0).AsObject().GetValue("stopAtEntry").AsBool(), false);
+    EXPECT_EQ(asObj.GetValue("configurations").AsArray().GetValue(0).AsObject().GetValue("setupCommands").IsArray(), true);
+    auto& array = asObj.GetValue("configurations").AsArray().GetValue(0).AsObject().GetValue("setupCommands").AsArray();
+    EXPECT_EQ(array.GetValue(1).AsObject().GetValue("text").AsString(), "-gdb-set disassembly-flavor intel");
 }
 
 int main()
