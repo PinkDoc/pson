@@ -1,6 +1,9 @@
 # pson
 一个轻量级json解析器。
-## Usage-使用
+## 功能
+* json文本生成器
+* json文本解析器
+## 使用
 
 ```
 std::string data = "{\n"
