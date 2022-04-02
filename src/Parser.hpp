@@ -1,11 +1,12 @@
-#ifndef PNET_PSON_HPP
-#define PNET_PSON_HPP
+#ifndef PSON_PARSER_HPP
+#define PSON_PARSER_HPP
+
+#include "Value.hpp"
+
 #include <assert.h>
 #include <stdio.h>
 
 #include <string>
-
-#include "Value.hpp"
 
 #if __cplusplus >= 201703L
 #include <string_view>
@@ -18,8 +19,7 @@ namespace pson {
 
     class Object;
     class Value;
-
-
+    using Stirng = std::string;
 
     class Parser {
     private:
