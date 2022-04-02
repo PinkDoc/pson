@@ -2,8 +2,8 @@
 // Created by pink on 2022/2/26.
 //
 
-#ifndef PNET_PSON_VALUE_HPP
-#define PNET_PSON_VALUE_HPP
+#ifndef PSON_VALUE_HPP
+#define PSON_VALUE_HPP
 
 #include <string.h>
 #include <assert.h>
@@ -72,6 +72,8 @@ namespace pson {
         String& GetAsString(const String& name);
         Array& GetAsArray(const String& name);
         Object& GetAsObject(const String& name);
+
+        friend void imple::pson_print_object(const Value& v, std::string& buffer);
     };
 
     class Array {
@@ -94,6 +96,8 @@ namespace pson {
         String& GetAsString(size_t i);
         Array& GetAsArray(size_t i);
         Object& GetAsObject(size_t i);
+
+        friend void imple::pson_print_array(const Value& v, std::string& buffer);
     };
 
 
@@ -132,6 +136,8 @@ namespace pson {
         ~Value();
 
         void reset();
+
+        JSON_TYPE type() const { return type_; }
 
         bool IsNull() { return JudgeType(JSON_NULL); }
         bool IsBool() { return JudgeType(JSON_BOOL); }
