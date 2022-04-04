@@ -28,6 +28,7 @@ namespace imple {
         buffer.append(std::to_string(v.AsNumber()));
     }
 
+    // FIXME, Support UTF-8...
     inline void pson_print_string(pson::Value& v, std::string& buffer) {
         buffer.push_back('"');
         buffer.append(v.AsString());
@@ -48,7 +49,7 @@ namespace imple {
             pson_print_value(*array[i], buffer);
             if (i != array.size() - 1)
             {
-                buffer.push_back(',');
+                buffer.append(" ,");
             }
         }
 
@@ -63,18 +64,19 @@ namespace imple {
             return;
         }
 
-        buffer.push_back('{');
+        buffer.append("{\n");
         auto n = 0;
         for (auto& i : obj)
         {
             // Print name
-            buffer.push_back('"');
-            buffer.append(i.first);
-            buffer.push_back('"');
 
+            buffer.append("\"");
+            buffer.append(i.first);
+            buffer.append("\" : ");
             // Print value
             pson_print_value(*i.second, buffer);
 
+            buffer.push_back('\n');
             if (n++ != obj.size() - 1)
                 buffer.push_back(',');
         }
