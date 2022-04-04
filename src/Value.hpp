@@ -328,7 +328,7 @@ namespace pson {
     inline void Array::Pop()
     {
         auto v = values_.back();
-        values_.pop();
+        values_.pop_back();
         delete v;
     }
 
@@ -400,8 +400,9 @@ namespace pson {
 
     inline void Object::Insert(std::string name, Value *value)
     {
-        if ((auto iter = value_map_.find(name)) != value_map_.end()) {
-            delete *iter.second;
+        auto iter = value_map_.find(name);
+        if (iter != value_map_.end()) {
+            delete (*iter).second;
             value_map_.erase(name);
         }
         value_map_.emplace(std::move(name), value);
@@ -409,8 +410,9 @@ namespace pson {
 
     inline void Object::Erase(const std::string& name)
     {
-        if ((auto iter = value_map_.find(name)) != value_map_.end()) {
-            delete *iter.second;
+        auto iter = value_map_.find(name);
+        if (iter != value_map_.end()) {
+            delete (*iter).second;
             value_map_.erase(name);
         }
     }
