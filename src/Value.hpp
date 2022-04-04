@@ -61,6 +61,7 @@ namespace pson {
         ~Object();
 
         void   Insert(std::string name, Value* value);
+        void   Erase(const std::string& name);
         bool   Has(const std::string& name);
         Value& GetValue(const std::string& name);
 
@@ -87,6 +88,7 @@ namespace pson {
         bool     Has(size_t i);
         Value&   GetValue(size_t i);
         void     Push(Value* val);
+        void     Pop();
         size_t   Size() const;
         void     reset();
 
@@ -313,13 +315,21 @@ namespace pson {
         return values_.size();
     }
 
-    inline Value& Array::GetValue(size_t i) {
+    inline Value& Array::GetValue(size_t i) 
+    {
         return *values_[i];
     }
 
     inline void Array::Push(Value* val)
     {
         values_.emplace_back(val);
+    }
+
+    inline void Array::Pop()
+    {
+        auto v = values_.back();
+        values_.pop();
+        delete v;
     }
 
     inline bool Array::Has(size_t i)
@@ -390,7 +400,19 @@ namespace pson {
 
     inline void Object::Insert(std::string name, Value *value)
     {
+        if ((auto iter = value_map_.find(name)) != value_map_.end()) {
+            delete *iter.second;
+            value_map_.erase(name);
+        }
         value_map_.emplace(std::move(name), value);
+    }
+
+    inline void Object::Erase(const std::string& name)
+    {
+        if ((auto iter = value_map_.find(name)) != value_map_.end()) {
+            delete *iter.second;
+            value_map_.erase(name);
+        }
     }
 
     inline Value& Object::GetValue(const std::string &name)
