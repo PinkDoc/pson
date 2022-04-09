@@ -42,7 +42,6 @@ namespace pson{
 
         Object& operator= (const Object& o);
         Object& operator= (Object&& o);
-        bool operator== (const Object& o);
 
         // You could use move to zero over head,
         // eg. obj.insert(std::move(name), std::move(val));
@@ -72,8 +71,6 @@ namespace pson{
         Array &operator=(const Array &a);
 
         Array &operator=(Array &&a);
-
-        bool operator==(const Array &a);
 
         Value& operator[] (int p);
         void    push_back(Value v);
@@ -128,26 +125,6 @@ namespace pson{
 
         // Move
         Value& operator= (Value&&);
-
-        bool operator== (const Value& v)
-        {
-            if (type_ != v.type_) return false;
-            switch (type_) {
-                case JSON_NULL:
-                    return true;
-                case JSON_BOOL:
-                    return val_.bool_ == v.val_.bool_;
-                case JSON_NUMBER:
-                    return val_.number_ == v.val_.number_;
-                case JSON_STRING:
-                    return *val_.string_ == *v.val_.string_;
-                case JSON_ARRAY:
-                    return *val_.array_ == *v.val_.array_;
-                case JSON_OBJECT:
-                    return *val_.object_ == *v.val_.object_;
-            }
-        }
-
 
         void reset();
 
@@ -245,11 +222,6 @@ namespace pson{
         return *this;
     }
 
-    bool Object::operator== (const Object& o)
-    {
-        return value_map_ == o.value_map_;
-    }
-
     inline Value &Object::operator[](const std::string &name)
     {
         return value_map_.at(name);
@@ -305,11 +277,6 @@ namespace pson{
     {
         values_ = std::move(a.values_);
         return *this;
-    }
-
-    inline bool Array::operator== (const Array& a)
-    {
-        return values_ == a.values_;
     }
 
     inline bool Array::empty() const
