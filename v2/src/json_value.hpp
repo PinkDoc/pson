@@ -32,16 +32,29 @@ namespace pson{
     private:
         ObjectContainer value_map_;
     public:
+
+        Object() = default;
+        ~Object() = default;
+
+        Object(const Object& o);
+
+        Object(Object&& o);
+
+        Object& operator= (const Object& o);
+        Object& operator= (Object&& o);
+        bool operator== (const Object& o);
+
         // You could use move to zero over head,
         // eg. obj.insert(std::move(name), std::move(val));
         // Copy eg. obj.insert(name, val);
-        void insert(std::string name, Value v);
-        void erase(const std::string& name);
-        Value& operator[] (const std::string& name);
-        Value& at(const std::string& name);
-        bool empty() const;
-        bool has(const std::string& name) const ;
-        std::size_t size() const;
+        void    insert(std::string name, Value v);
+        void    erase(const std::string& name);
+        Value&  operator[] (const std::string& name);
+        Value&  at(const std::string& name);
+
+        bool        empty()                         const;
+        bool        has(const std::string& name)    const ;
+        std::size_t size()                          const;
     };
 
 
@@ -49,15 +62,28 @@ namespace pson{
     private:
         ArrayContainer values_;
     public:
-        Value& operator[] (int p);
-        void push_back(Value v);
-        void pop_back();
-        Value& back();
-        Value& at(int i);
 
-        bool has(int i) const;
-        std::size_t size() const;
-        bool empty() const;
+        Array() = default;
+        ~Array() = default;
+
+        Array(const Array &a);
+        Array(Array &&a);
+
+        Array &operator=(const Array &a);
+
+        Array &operator=(Array &&a);
+
+        bool operator==(const Array &a);
+
+        Value& operator[] (int p);
+        void    push_back(Value v);
+        void    pop_back();
+        Value&  back();
+        Value&  at(int i);
+
+        bool        has(int i)          const;
+        std::size_t size()              const;
+        bool        empty()             const;
     };
 
     class Value {
@@ -102,6 +128,26 @@ namespace pson{
 
         // Move
         Value& operator= (Value&&);
+
+        bool operator== (const Value& v)
+        {
+            if (type_ != v.type_) return false;
+            switch (type_) {
+                case JSON_NULL:
+                    return true;
+                case JSON_BOOL:
+                    return val_.bool_ == v.val_.bool_;
+                case JSON_NUMBER:
+                    return val_.number_ == v.val_.number_;
+                case JSON_STRING:
+                    return *val_.string_ == *v.val_.string_;
+                case JSON_ARRAY:
+                    return *val_.array_ == *v.val_.array_;
+                case JSON_OBJECT:
+                    return *val_.object_ == *v.val_.object_;
+            }
+        }
+
 
         void reset();
 
@@ -162,13 +208,15 @@ namespace pson{
         void    push_back(Value v);
         void    pop_back();
         Value&  back();
-        bool    has(int i);
+        bool    has(int i) const;
         Value&  operator[] (int i);
+        Value&  at(int i);
 
         // operator for Object
         void    insert(std::string name, Value v);
-        bool    has(const std::string& name);
+        bool    has(const std::string& name) const;
         Value&  operator[] (const std::string& name);
+        Value&  at(const std::string& name);
         void    erase(const std::string& name);
     };
 
@@ -176,6 +224,32 @@ namespace pson{
 
     // Implement
     // Object
+
+    inline Object::Object(const Object& o):
+        value_map_(o.value_map_)
+    {}
+
+    inline Object::Object(Object&& o):
+        value_map_(std::move(o.value_map_))
+    {}
+
+    inline Object& Object::operator= (const Object& o)
+    {
+        value_map_ = o.value_map_;
+        return *this;
+    }
+
+    inline Object& Object::operator= (Object&& o)
+    {
+        value_map_ = std::move(o.value_map_);
+        return *this;
+    }
+
+    bool Object::operator== (const Object& o)
+    {
+        return value_map_ == o.value_map_;
+    }
+
     inline Value &Object::operator[](const std::string &name)
     {
         return value_map_.at(name);
@@ -212,6 +286,32 @@ namespace pson{
     }
 
     // Array
+
+    inline Array::Array(const Array& a):
+        values_(a.values_)
+    {}
+
+    inline Array::Array(Array&& a):
+        values_(std::move(a.values_))
+    {}
+
+    inline Array& Array::operator= (const Array& a)
+    {
+        values_ = a.values_;
+        return *this;
+    }
+
+    inline Array& Array::operator= (Array&& a)
+    {
+        values_ = std::move(a.values_);
+        return *this;
+    }
+
+    inline bool Array::operator== (const Array& a)
+    {
+        return values_ == a.values_;
+    }
+
     inline bool Array::empty() const
     {
         return values_.empty();
@@ -542,7 +642,7 @@ namespace pson{
         val_.array_->push_back(std::move(v));
     }
 
-    inline bool Value::has(int i)
+    inline bool Value::has(int i) const
     {
         PSON_ASSERT(judge_type(JSON_BOOL));
         return val_.array_->has(i);
@@ -554,19 +654,31 @@ namespace pson{
         return val_.array_->at(i);
     }
 
+    inline Value& Value::at(int i)
+    {
+        PSON_ASSERT(judge_type(JSON_ARRAY));
+        return val_.array_->at(i);
+    }
+
     inline void Value::insert(std::string name, Value v)
     {
         PSON_ASSERT(judge_type(JSON_OBJECT));
         return val_.object_->insert(std::move(name), std::move(v));
     }
 
-    inline bool Value::has(const std::string& name)
+    inline bool Value::has(const std::string& name) const
     {
         PSON_ASSERT(judge_type(JSON_OBJECT));
         return val_.object_->has(name);
     }
 
     inline Value& Value::operator[] (const std::string& name)
+    {
+        PSON_ASSERT(judge_type(JSON_OBJECT));
+        return val_.object_->at(name);
+    }
+
+    inline Value& Value::at(const std::string& name)
     {
         PSON_ASSERT(judge_type(JSON_OBJECT));
         return val_.object_->at(name);
