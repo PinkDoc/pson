@@ -415,4 +415,17 @@ namespace pson {
         return parse_value(v);
     }
 
+    // Implement for value
+    inline bool Value::parse(const std::string &json_data)
+    {
+        Parser p(json_data);
+        return p.Parse(*this);
+    }
+
+    inline bool Value::parse(char *json_data, std::size_t len)
+    {
+        Parser p(json_data, len);
+        return p.Parse(*this);
+    }
+
 }
