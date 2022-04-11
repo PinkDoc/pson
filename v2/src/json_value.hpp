@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 
+#include "json_parser.hpp"
 #include "json_assert.hpp"
 
 namespace pson{
@@ -195,13 +196,15 @@ namespace pson{
         Value&  operator[] (const std::string& name);
         Value&  at(const std::string& name);
         void    erase(const std::string& name);
+
+        bool    parse(const std::string& json_data);
+        bool    parse(char* json_data, std::size_t len);
     };
 
 
 
     // Implement
     // Object
-
     inline Object::Object(const Object& o):
         value_map_(o.value_map_)
     {}
@@ -343,7 +346,8 @@ namespace pson{
         init_base(t);
     }
 
-    inline Value::Value(const Value& v)
+    inline Value::Value(const Value& v):
+        type_(JSON_NULL)
     {
         copy_value(v);
     }
@@ -356,7 +360,6 @@ namespace pson{
 
     inline Value& Value::operator= (const Value& v) 
     {
-        reset();
         copy_value(v);
         return *this;
     }
@@ -430,29 +433,54 @@ namespace pson{
 
     inline void Value::copy_value(const Value& v) 
     {
-        type_ = v.type_;
-        switch (v.type_)
-        {
-            case JSON_NULL:
-                val_.null_ = 0;
-                break;
-            case JSON_BOOL:
-                val_.bool_ = v.val_.bool_;
-                break;
-            case JSON_NUMBER:
-                val_.number_ = v.val_.number_;
-                break;
-            case JSON_STRING:
-                val_.string_ = new String(*v.val_.string_);
-                break;
-            case JSON_ARRAY:
-                val_.array_ = new Array(*v.val_.array_);
-                break;
-            case JSON_OBJECT:
-                val_.object_ = new Object(*v.val_.object_);
-                break;
+        if (type_ == v.type_) {
+             switch (v.type_)
+             {
+                case JSON_NULL:
+                    val_.null_ = 0;
+                    break;
+                case JSON_BOOL:
+                    val_.bool_ = v.val_.bool_;
+                    break;
+                case JSON_NUMBER:
+                    val_.number_ = v.val_.number_;
+                    break;
+                case JSON_STRING:
+                    *val_.string_ = *v.val_.string_;
+                    break;
+                case JSON_ARRAY: 
+                    *val_.array_ = *v.val_.array_;
+                    break;
+                case JSON_OBJECT: 
+                    *val_.object_ = *v.val_.object_;
+                    break;
+            }
+        } else {
+            switch (v.type_)
+            {
+                case JSON_NULL:
+                    val_.null_ = 0;
+                    break;
+                case JSON_BOOL:
+                    val_.bool_ = v.val_.bool_;
+                    break;
+                case JSON_NUMBER:
+                    val_.number_ = v.val_.number_;
+                    break;
+                case JSON_STRING:
+                    val_.string_ = new String(*v.val_.string_);
+                    break;
+                case JSON_ARRAY: 
+                    val_.array_ = new Array(*v.val_.array_);
+                    break;
+                case JSON_OBJECT: 
+                    val_.object_ = new Object(*v.val_.object_);
+                    break;
+            }
+            type_ = v.type_;
         }
     }
+        
 
     // void Value::reset_as<T>()
     template <>
