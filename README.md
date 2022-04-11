@@ -1,8 +1,8 @@
 #### pson
 
-pson is a lightweight parser and it support six type, null , bool, number, string, array, object, 
+pson is a lightweight parser and it support six type, null , bool, number, string, array, object, and it can parse the encoding of UTF-8.
 
-it's fast, small and it's simple to use.
+It's fast, small and it's simple to use.
 
 You just need to `#include "pson.hpp"` to your projects~
 
