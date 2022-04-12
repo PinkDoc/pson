@@ -4,10 +4,9 @@
 #include <vector>
 #include <map>
 
-#include "json_parser.hpp"
 #include "json_assert.hpp"
 
-namespace pson{
+namespace pson {
 
     // Json type
     enum JSON_TYPE
@@ -55,6 +54,8 @@ namespace pson{
         bool        empty()                         const;
         bool        has(const std::string& name)    const ;
         std::size_t size()                          const;
+
+        ObjectContainer& value_map();
     };
 
 
@@ -82,6 +83,8 @@ namespace pson{
         bool        has(int i)          const;
         std::size_t size()              const;
         bool        empty()             const;
+
+        ArrayContainer& values();
     };
 
     class Value {
@@ -135,6 +138,8 @@ namespace pson{
         void reset_as();
 
         void swap(Value& v) { swap_value(v); }
+
+        JSON_TYPE type() const { return type_; }
 
         bool is_null()      const { return judge_type(JSON_NULL); }
         bool is_bool()      const { return judge_type(JSON_BOOL); }
@@ -199,6 +204,8 @@ namespace pson{
 
         bool    parse(const std::string& json_data);
         bool    parse(char* json_data, std::size_t len);
+
+        std::string print();
     };
 
 
@@ -245,6 +252,11 @@ namespace pson{
         return value_map_.size();
     }
 
+    inline ObjectContainer& Object::value_map()
+    {
+        return value_map_;
+    }
+
     inline bool Object::has(const std::string &name) const
     {
         return value_map_.find(name) != value_map_.end();
@@ -285,6 +297,11 @@ namespace pson{
     inline bool Array::empty() const
     {
         return values_.empty();
+    }
+
+    inline ArrayContainer& Array::values()
+    {
+        return values_;
     }
 
     inline Value &Array::back()
