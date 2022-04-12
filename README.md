@@ -29,6 +29,10 @@ You just need to `#include "pson.hpp"` to your projects~
     assert(v["pink"]["ktouch"].as_string() == "phone");
     assert(v["computer"][1].as_number() == 100.0);
     assert(v["man"].as<Bool>() == true);
+
+    Value cp_v(v);  // Copy
+    Value mv_c(std::move(v)); // Move
+
 ```
 
 hf!
