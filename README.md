@@ -32,7 +32,11 @@ You just need to `#include "pson.hpp"` to your projects~
 
     Value cp_v(v);  // Copy
     Value mv_c(std::move(v)); // Move
-
+    
+    // Use array, or object to move and copy
+    Value a(JSON_ARRAY), o(JSON_OBJECT);
+    a.push_back(std::move(v));     // Move
+    o.insert("This is copy", v);   // Copy
 ```
 
 hf!
