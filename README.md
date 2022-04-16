@@ -37,6 +37,9 @@ You just need to `#include "pson.hpp"` to your projects~
     Value a(JSON_ARRAY), o(JSON_OBJECT);
     a.push_back(std::move(v));     // Move
     o.insert("This is copy", v);   // Copy
+    
+    // To string
+    std::string tostr = a.print();
 ```
 
 hf!
