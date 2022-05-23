@@ -326,7 +326,7 @@ namespace pson {
 
     inline void Array::push_back(Value v)
     {
-        return values_.emplace_back(std::move(v));
+        values_.emplace_back(std::move(v));
     }
 
     inline void Array::pop_back()
