@@ -113,6 +113,11 @@ namespace pson {
     public:
 
         Value();
+        Value(bool b);
+        Value(const char* s);
+        Value(const String& s);
+        Value(String s);
+        Value(Number n);
 
         Value(const JSON_TYPE&);
 
@@ -352,10 +357,40 @@ namespace pson {
     }
 
     // Value
-    inline Value::Value()
+    inline Value::Value():
+        type_(JSON_NULL)
     {
-        type_ = JSON_NULL;
         val_.null_ = 0;
+    }
+
+    inline Value::Value(bool b):
+        type_(JSON_BOOL)
+    {
+        val_.bool_ = b;
+    }
+
+    inline Value::Value(Number n) :
+        type_(JSON_NUMBER)
+    {
+        val_.number_ = n;
+    }
+        
+    inline Value::Value(const char* s) :
+        type_(JSON_STRING)
+    {
+        val_.string_ = new String(s);
+    }
+
+    inline Value::Value(const String& s) :
+        type_(JSON_STRING)
+    {
+        val_.string_ = new String(s);
+    }
+
+    inline Value::Value(String s) :
+        type_(JSON_STRING)
+    {
+        val_.string_ = new String(std::move(s));
     }
 
     inline Value::Value(const JSON_TYPE &t) 

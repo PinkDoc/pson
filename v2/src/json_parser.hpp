@@ -316,7 +316,7 @@ namespace pson {
         {
             Value val;
             if (!Parse(val)) return false;
-            v.as<Array>().push_back(val);
+            v.as<Array>().push_back(std::move(val));
             skip_write_blank();
 
             if (d[offset] == ',')
@@ -367,7 +367,7 @@ namespace pson {
 
             auto ret = Parse(val);
             if (!ret) return false;
-            v.as<Object>().insert(std::move(name), val);
+            v.as<Object>().insert(std::move(name), std::move(val));
 
             skip_write_blank();
             if (d[offset] == ',') {
