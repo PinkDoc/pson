@@ -24,6 +24,10 @@ You just need to `#include "pson.hpp"` to your projects~
     Value v;
     v.parse(json);
     
+    Value v_hello{"hello"};
+    Value v_false{false};
+    Value v_number(1.2);
+    
     assert(v.is<Object>() == true);
     assert(v["computer"][0].as<String>() == "惠普");
     assert(v["pink"]["ktouch"].as_string() == "phone");
@@ -40,6 +44,9 @@ You just need to `#include "pson.hpp"` to your projects~
     
     // To string
     std::string tostr = a.print();
+    
+    
+    
 ```
 
 hf!
