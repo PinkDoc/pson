@@ -3,12 +3,12 @@
 #include "json_value.hpp"
 
 namespace  pson {
-
+namespace imple {
     void pson_print_value(pson::Value& v, std::string& to_print);
     void pson_print_object(pson::Value& v, std::string& to_print);
     void pson_print_array(pson::Value& v, std::string& to_print);
 
-    void pson_print_array(pson::Value& v, std::string& to_print)
+    inline void pson_print_array(pson::Value& v, std::string& to_print)
     {
         using namespace pson;
         Array& a = v.as<Array>();
@@ -30,7 +30,7 @@ namespace  pson {
         to_print.append("]");
     }
 
-    void pson_print_object(pson::Value& v, std::string& to_print)
+    inline void pson_print_object(pson::Value& v, std::string& to_print)
     {
         using namespace pson;
         Object& o = v.as<Object>();
@@ -63,7 +63,7 @@ namespace  pson {
     }
 
 
-    void pson_print_value(pson::Value& v, std::string& to_print)
+   inline void pson_print_value(pson::Value& v, std::string& to_print)
    {
        using namespace pson;
 
@@ -95,6 +95,7 @@ namespace  pson {
                return;
        }
    }
+}
 }
 
 namespace pson {
