@@ -388,6 +388,11 @@ namespace pson {
 
     inline bool Parser::parse_value(Value& v)
     {
+        if (state_.size_ == 0) {
+            v.reset_as<Null>();
+            return true;
+        }
+        
         char ch = state_.data_[state_.offset_];
         switch (ch) {
             case 't':
