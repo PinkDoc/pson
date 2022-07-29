@@ -45,7 +45,7 @@ std::vector<char> GetJsonData(const std::string& filename)
     LOG("json data size : %ld",size);
     data.resize(size);
     auto ok = fread(data.data(), size, 1, file_stream);
-
+    fclose(file_stream);
     return data;
 }
 
