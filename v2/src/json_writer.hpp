@@ -38,6 +38,7 @@ namespace imple {
         if (o.size() == 0)
         {
             to_print.append("{}");
+            return;
         }
 
         auto& c = o.value_map();

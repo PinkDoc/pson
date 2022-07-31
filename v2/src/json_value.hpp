@@ -1,5 +1,6 @@
 #pragma once
 
+#include <typeinfo>
 #include <string>
 #include <vector>
 #include <map>
@@ -19,14 +20,52 @@ namespace pson {
         JSON_OBJECT
     };
 
-    class Value;
+    struct null_type
+    {};
 
-    using Null   = short;
+    class Value;
+    class Array;
+    class Object;
+
+    using Null   = null_type;
     using Bool   = bool;
     using Number = double;
     using String = std::string;
     using ArrayContainer = std::vector<Value>;
     using ObjectContainer = std::map<std::string, Value>;
+
+    // some util...
+    template <typename T, typename K>
+    struct is_same
+    {
+        enum {
+            value = false
+        };
+    };
+
+    template <typename T>
+    struct is_same<T, T>
+    {
+        enum {
+            value = true
+        };
+    };
+
+    #define IS_JSON_TYPE(type) \
+        std::is_trivial<type>::value \
+        || pson::is_same<int32_t, type>::value \
+        || pson::is_same<uint32_t, type>::value \
+        || pson::is_same<int64_t, type>::value \
+        || pson::is_same<uint64_t, type>::value \
+        || pson::is_same<pson::Null, type>::value \
+        || pson::is_same<pson::Bool, type>::value \
+        || pson::is_same<pson::Number, type>::value \
+        || pson::is_same<pson::String, type>::value \
+        || pson::is_same<pson::Array, type>::value \
+        || pson::is_same<pson::Object, type>::value  \
+        || pson::is_same<pson::Value, type>::value
+
+
 
     class Object {
     private:
@@ -42,6 +81,9 @@ namespace pson {
 
         Object& operator= (const Object& o);
         Object& operator= (Object&& o);
+
+        template <typename T>
+        void insert(std::string name, T t);
 
         // You could use move to zero over head,
         // eg. obj.insert(std::move(name), std::move(val));
@@ -71,7 +113,6 @@ namespace pson {
         Array(Array &&a);
 
         Array &operator=(const Array &a);
-
         Array &operator=(Array &&a);
 
         Value& operator[] (int p);
@@ -99,11 +140,11 @@ namespace pson {
             Object* object_;
         } val_;
 
-        bool judge_type(const JSON_TYPE& t) const { return type_ == t; }
+        inline bool judge_type(const JSON_TYPE& t) const { return type_ == t; }
 
         void init_base(const JSON_TYPE& t);
 
-        void swap_value(Value& v) {
+        inline void swap_value(Value& v) {
             std::swap(this->val_, v.val_);
             std::swap(this->type_, v.type_);
         }
@@ -115,9 +156,16 @@ namespace pson {
         Value();
         Value(bool b);
         Value(const char* s);
-        Value(const String& s);
         Value(String s);
         Value(Number n);
+        Value(int32_t n);
+        Value(uint32_t n);
+        Value(int64_t n);
+        Value(uint64_t n);
+
+        Value(const Array& array);
+        Value(const Object& obj);
+
 
         Value(const JSON_TYPE&);
 
@@ -137,51 +185,51 @@ namespace pson {
 
         void reset();
 
-        void reset_as(JSON_TYPE t) { reset(); init_base(t); }
+        inline void reset_as(JSON_TYPE t) { reset(); init_base(t); }
 
         template <typename T>
         void reset_as();
 
-        void swap(Value& v) { swap_value(v); }
+        inline void swap(Value& v) { swap_value(v); }
 
-        JSON_TYPE type() const { return type_; }
+        inline JSON_TYPE type() const { return type_; }
 
-        bool is_null()      const { return judge_type(JSON_NULL); }
-        bool is_bool()      const { return judge_type(JSON_BOOL); }
-        bool is_number()    const { return judge_type(JSON_NUMBER); }
-        bool is_string()    const { return judge_type(JSON_STRING); }
-        bool is_array()     const { return judge_type(JSON_ARRAY); }
-        bool is_object()    const { return judge_type(JSON_OBJECT); }
+        inline bool is_null()      const { return judge_type(JSON_NULL); }
+        inline bool is_bool()      const { return judge_type(JSON_BOOL); }
+        inline bool is_number()    const { return judge_type(JSON_NUMBER); }
+        inline bool is_string()    const { return judge_type(JSON_STRING); }
+        inline bool is_array()     const { return judge_type(JSON_ARRAY); }
+        inline bool is_object()    const { return judge_type(JSON_OBJECT); }
 
         template <typename T>
         bool is();
 
-        Null as_null() {
+        inline Null as_null() {
             PSON_ASSERT(judge_type(JSON_NULL));
             return val_.null_;
         }
 
-        Number& as_number() {
+        inline Number& as_number() {
             PSON_ASSERT(judge_type(JSON_NUMBER));
             return val_.number_;
         }
 
-        Bool& as_bool() {
+        inline Bool& as_bool() {
             PSON_ASSERT(judge_type(JSON_BOOL));
             return val_.bool_;
         }
 
-        String& as_string() {
+        inline String& as_string() {
             PSON_ASSERT(judge_type(JSON_STRING));
             return *val_.string_;
         }
 
-        Array&  as_array() {
+        inline Array&  as_array() {
             PSON_ASSERT(judge_type(JSON_ARRAY));
             return *val_.array_;
         }
 
-        Object& as_object() {
+        inline Object& as_object() {
             PSON_ASSERT(judge_type(JSON_OBJECT));
             return *val_.object_;
         }
@@ -267,6 +315,14 @@ namespace pson {
         return value_map_.find(name) != value_map_.end();
     }
 
+    template <typename T>
+    inline void Object::insert(std::string name, T t)
+    {
+        static_assert(IS_JSON_TYPE(T), "Object::insert(std::string, T) tparam not a json type");
+        pson::Value v(t);
+        insert(std::move(name), std::move(v));
+    }
+    
     inline void Object::insert(std::string name, Value v)
     {
         value_map_.emplace(std::move(name), std::move(v));
@@ -360,7 +416,7 @@ namespace pson {
     inline Value::Value():
         type_(JSON_NULL)
     {
-        val_.null_ = 0;
+        val_.null_ = Null{};
     }
 
     inline Value::Value(bool b):
@@ -374,14 +430,44 @@ namespace pson {
     {
         val_.number_ = n;
     }
-        
-    inline Value::Value(const char* s) :
-        type_(JSON_STRING)
+
+    inline Value::Value(int32_t n):
+        type_(JSON_NUMBER) 
     {
-        val_.string_ = new String(s);
+        val_.number_ = static_cast<Number>(n);
+    }
+        
+    inline Value::Value(uint32_t n) :
+        type_(JSON_NUMBER)
+    {
+        val_.number_  = static_cast<Number>(n);
     }
 
-    inline Value::Value(const String& s) :
+    inline Value::Value(int64_t n):
+        type_(JSON_NUMBER)
+    {
+        val_.number_ = static_cast<Number>(n);
+    }
+
+    inline Value::Value(uint64_t n):
+        type_(JSON_NUMBER)
+    {
+        val_.number_ = static_cast<Number>(n);
+    }
+
+    inline Value::Value(const Array& a):
+        type_(JSON_ARRAY)
+    {
+        val_.array_ = new Array(a);
+    }
+
+    inline Value::Value(const Object& o):
+        type_(JSON_OBJECT)
+    {
+        val_.object_ = new Object(o);
+    }
+
+    inline Value::Value(const char* s) :
         type_(JSON_STRING)
     {
         val_.string_ = new String(s);
@@ -454,7 +540,7 @@ namespace pson {
                 break;
         }
         type_ = JSON_NULL;
-        val_.null_ = 0;
+        val_.null_ = Null{};
     }
 
     inline void Value::init_base(const JSON_TYPE& t) 
@@ -463,7 +549,7 @@ namespace pson {
         switch (type_) 
         {
             case JSON_NULL:
-                val_.null_ = 0;
+                val_.null_ = Null{};
                 break;
             case JSON_BOOL:
                 val_.bool_ = false;
@@ -489,7 +575,7 @@ namespace pson {
              switch (v.type_)
              {
                 case JSON_NULL:
-                    val_.null_ = 0;
+                    val_.null_ = Null{};
                     break;
                 case JSON_BOOL:
                     val_.bool_ = v.val_.bool_;
@@ -511,7 +597,7 @@ namespace pson {
             switch (v.type_)
             {
                 case JSON_NULL:
-                    val_.null_ = 0;
+                    val_.null_ = Null{};
                     break;
                 case JSON_BOOL:
                     val_.bool_ = v.val_.bool_;
