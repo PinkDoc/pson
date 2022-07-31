@@ -37,7 +37,7 @@ struct enable_if<T, false>
                                             pson::Value v{pson::JSON_OBJECT};\
                                             pson::Object& obj = v.as<pson::Object>();
 
-#define Serialize_Insert(a) pson::enable_if<decltype(a), IS_JSON_TYPE(decltype(a))>().ObjectInsert(obj, std::string(VALUE_NAME(a)) , a);
+#define Serialize_Insert(a) pson::enable_if<decltype(a), IS_JSON_TYPE(decltype(a))>().ObjectInsert(obj, std::move(std::string(VALUE_NAME(a))), a);
 
 
 
