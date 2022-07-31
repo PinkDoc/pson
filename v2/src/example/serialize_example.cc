@@ -1,4 +1,5 @@
 #include "../json_serialization.hpp"
+#include "../json_writer.hpp"
 #include <iostream>
 
 struct Mom
