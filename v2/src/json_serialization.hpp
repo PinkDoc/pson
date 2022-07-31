@@ -15,7 +15,7 @@ struct enable_if<T, true>
 {
     void ObjectInsert(pson::Object& o, std::string name, T t)
     {
-        o.insert(name, t);
+        o.insert(std::move(name), t);
     }
 };
 
@@ -25,7 +25,7 @@ struct enable_if<T, false>
     void ObjectInsert(pson::Object& o, std::string name, T t)
     {
         auto&& json = t.Serialize();
-        o.insert(name, json);
+        o.insert(std::move(name), json);
     }
 };
 

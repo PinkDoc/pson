@@ -1,4 +1,4 @@
-#### pson
+### pson
 
 pson is a lightweight parser and it support six type, null , bool, number, string, array, object, and it can parse the encoding of UTF-8.
 
@@ -6,7 +6,11 @@ It's fast, small and it's simple to use.
 
 You just need to `#include "pson.hpp"` to your projects~
 
-#### usage
+### Feature
+* Serialize struct
+* Parser struct
+### Usage
+#### parse
 
 ```
     using namespace pson;
@@ -47,6 +51,44 @@ You just need to `#include "pson.hpp"` to your projects~
     
     
     
+```
+
+#### serialize
+```
+
+struct Mom
+{
+    int age;
+    std::string name;
+    pson::Value items;
+    pson::Object object;
+
+    Mom(): age(40), name("Taylor"), items(pson::JSON_OBJECT)
+    {}
+
+    Serialize_Start
+        Serialize_Insert(age)
+        Serialize_Insert(name)
+        Serialize_Insert(items)
+        Serialize_Insert(object)
+    Serialize_End
+};
+
+struct Tank
+{
+    Mom m;
+    pson::Array array;
+
+    Serialize_Start
+        Serialize_Insert(m)
+        Serialize_Insert(array)
+    Serialize_End
+};
+
+int main()
+{
+    std::cout << Tank().Serialize().print() << std::endl;
+}
 ```
 
 hf!
