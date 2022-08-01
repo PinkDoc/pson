@@ -51,21 +51,34 @@ namespace pson {
         };
     };
 
-    #define IS_JSON_TYPE(type) \
-        std::is_trivial<type>::value \
-        || pson::is_same<int32_t, type>::value \
-        || pson::is_same<uint32_t, type>::value \
-        || pson::is_same<int64_t, type>::value \
-        || pson::is_same<uint64_t, type>::value \
-        || pson::is_same<pson::Null, type>::value \
-        || pson::is_same<pson::Bool, type>::value \
-        || pson::is_same<pson::Number, type>::value \
-        || pson::is_same<pson::String, type>::value \
-        || pson::is_same<pson::Array, type>::value \
-        || pson::is_same<pson::Object, type>::value  \
-        || pson::is_same<pson::Value, type>::value
+    template <typename T, typename... Args>
+    struct TypesCmp
+    {
+        enum {
+            value = false
+        };
+    };
+
+    template <typename T, typename U, typename... Args>
+    struct TypesCmp<T, U, Args...>
+    {
+        enum {
+            value = false || TypesCmp<T, Args...>::value
+        };
+    };
+
+    template <typename T, typename... Args>
+    struct TypesCmp<T, T, Args...>
+    {
+        enum {
+            value = true || TypesCmp<T, Args...>::value
+        };
+    };
 
 
+
+    #define IS_JSON_TYPE(type) ( std::is_trivial<type>::value || \
+        pson::TypesCmp<type, pson::Null, pson::Bool, pson::Number, pson::String, pson::Array, pson::Object, pson::Value>::value)
 
     class Object {
     private:
@@ -236,6 +249,7 @@ namespace pson {
 
         template<typename T>
         T& as();
+
 
         bool empty() const;
         std::size_t size() const;       // For array, object
@@ -695,6 +709,12 @@ namespace pson {
     }
 
     // T& Value::as<T>()
+    template <>
+    inline Value& Value::as<Value>()
+    {
+        return *this;
+    }
+
     template <>
     inline Null& Value::as<Null>()
     {

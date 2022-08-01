@@ -18,6 +18,14 @@ struct Mom
         Serialize_Insert(items)
         Serialize_Insert(object)
     Serialize_End
+
+
+    DeSerialize_Start
+        DeSerialize_Fetch(age)
+        DeSerialize_Fetch(name)
+        DeSerialize_Fetch(items)
+        DeSerialize_Fetch(object)
+    DeSerialize_End
 };
 
 struct Tank
@@ -29,9 +37,21 @@ struct Tank
         Serialize_Insert(m)
         Serialize_Insert(array)
     Serialize_End
+
+    DeSerialize_Start
+        DeSerialize_Fetch(m)
+        DeSerialize_Fetch(array)
+    DeSerialize_End
 };
 
 int main()
 {
-    std::cout << Tank().Serialize().print() << std::endl;
+    Tank t;
+    t.m.age = 1989;
+    t.m.name = "Oly";
+    auto json_data = t.Serialize();
+    Tank t2;
+    t2.DeSerlizeFromValue(json_data);
+    assert(t2.m.name == "Oly");
+    assert(t2.m.age == 1989);
 }
