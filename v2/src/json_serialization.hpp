@@ -8,7 +8,7 @@ namespace pson {
 /**
  * @brief 
  * 
- * This tempalte code just like
+ * This template code works like:
  * if IsJsonType (t)
  *  then FetchJsonDataT
  *      if IsInteger (t)
