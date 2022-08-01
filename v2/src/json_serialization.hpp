@@ -1,10 +1,3 @@
-#pragma once
-
-#include "json_value.hpp"
-
-namespace pson {
-
-
 /**
  * @brief 
  * 
@@ -18,6 +11,12 @@ namespace pson {
  *  else
  *      use t.DeSerlize(o.at(name))
  */
+#pragma once
+
+#include "json_value.hpp"
+
+namespace pson {
+
 
 #define IS_INTEGER(type) \
     (pson::TypesCmp<type,uint8_t, int8_t, uint16_t, int16_t, int32_t, uint32_t, int64_t, uint64_t>::value)
@@ -28,7 +27,6 @@ struct FetchJsonDataT
 {
     void Fetch(pson::Object& o, const std::string& name, T& t) {}
 };
-
 
 template <typename T>
 struct FetchJsonDataT<T, true>
