@@ -79,7 +79,7 @@ struct enable_if<T, false>
     void ObjectFetch(pson::Object& o, const std::string& name, T& t)
     {
         auto&& v = o.at(name);
-        t.DeSerlizeFromValue(v);
+        t.DeSerializeFromValue(v);
     }
 };
 
@@ -99,7 +99,7 @@ struct enable_if<T, false>
                 return v; }        
 
 
-#define DeSerialize_Start inline void DeSerlizeFromValue(pson::Value& v) { \
+#define DeSerialize_Start inline void DeSerializeFromValue(pson::Value& v) { \
                                     auto&& obj = v.as<pson::Object>();
                                     
 #define DeSerialize_Fetch(a) pson::enable_if<decltype(a), IS_JSON_TYPE(decltype(a))>().ObjectFetch(obj, std::string(VALUE_NAME(a)), a);

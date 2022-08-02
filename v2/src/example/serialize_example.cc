@@ -51,7 +51,7 @@ int main()
     t.m.name = "Oly";
     auto json_data = t.Serialize();
     Tank t2;
-    t2.DeSerlizeFromValue(json_data);
+    t2.DeSerializeFromValue(json_data);
     assert(t2.m.name == "Oly");
     assert(t2.m.age == 1989);
-}
+} 
