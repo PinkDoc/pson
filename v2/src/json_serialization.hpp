@@ -1,16 +1,4 @@
-/**
- * @brief 
- * 
- * This template code works like:
- * if IsJsonType (t)
- *  then FetchJsonDataT
- *      if IsInteger (t)
- *          then use convert
- *      else 
- *          use t = at<T>()
- *  else
- *      use t.DeSerlize(o.at(name))
- */
+
 #pragma once
 
 #include "json_value.hpp"
